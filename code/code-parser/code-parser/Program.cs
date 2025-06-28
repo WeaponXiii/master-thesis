@@ -230,29 +230,29 @@ static async Task PrintSolutionInfo()
                 var currentParent = parent ?? new Tree($"[yellow]{node.Kind()}[/]");
 
                 // Recursively add child nodes
-                foreach (var child in node.ChildNodesAndTokens())
+                if (node.IsNode)
                 {
-                    if (child.IsNode)
+                    var childNode = node.AsNode()!;
+                    var localParent = node.IsKind(SyntaxKind.CompilationUnit)
+                        ? currentParent
+                        : currentParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(childNode));
+
+                    foreach (var child in childNode.ChildNodesAndTokens())
                     {
-                        var childNode = child.AsNode()!;
-                        var childTreeNode = currentParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(childNode));
-                        foreach (var grandChild in childNode.ChildNodesAndTokens())
-                        {
-                            BuildSyntaxTree2(grandChild, childTreeNode);
-                        }
+                        BuildSyntaxTree2(child, localParent);
                     }
-                    else
+                }
+                else
+                {
+                    var token = node.AsToken();
+                    var localParent = currentParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(token));
+                    foreach (var trivia in token.LeadingTrivia)
                     {
-                            var token = child.AsToken();
-                        var tokenTreeNode = currentParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(token));
-                        foreach (var trivia in token.LeadingTrivia)
-                        {
-                            tokenTreeNode.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(trivia));
-                        }
-                        foreach (var trivia in token.TrailingTrivia)
-                        {
-                            tokenTreeNode.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(trivia));
-                        }
+                        localParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(trivia));
+                    }
+                    foreach (var trivia in token.TrailingTrivia)
+                    {
+                        localParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(trivia));
                     }
                 }
 
@@ -260,11 +260,11 @@ static async Task PrintSolutionInfo()
             }
 
             // Encountered unescaped ']' token at position 37
-            var syntaxTreeDisplay = BuildSyntaxTree(root);
-            AnsiConsole.Write(syntaxTreeDisplay);
+            /* var syntaxTreeDisplay = BuildSyntaxTree(root);
+            AnsiConsole.Write(syntaxTreeDisplay); */
 
-            /* var tree = BuildSyntaxTree2(root) as Tree;
-            AnsiConsole.Write(tree!); */
+            var tree = BuildSyntaxTree2(root) as Tree;
+            AnsiConsole.Write(tree!);
         }
     }
 
