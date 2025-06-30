@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Spectre.Console;
 
-using CodeParser.Helpers;
+using spectre.console.helpers;
 
 MSBuildLocator.RegisterDefaults();
 
@@ -56,7 +56,7 @@ static async Task PrintSolutionInfo()
             IHasTreeNodes BuildSyntaxTree2(SyntaxNodeOrToken node, IHasTreeNodes? parent = null)
             {
                 // Create the tree node with the kind of the syntax node
-                var currentParent = parent ?? new Tree($"[yellow]{node.Kind()}[/]");
+                var currentParent = parent ?? Tree.From(node.AsNode()!);
 
                 // Recursively add child nodes
                 if (node.IsNode)
@@ -64,7 +64,7 @@ static async Task PrintSolutionInfo()
                     var childNode = node.AsNode()!;
                     var localParent = node.IsKind(SyntaxKind.CompilationUnit)
                         ? currentParent
-                        : currentParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(childNode));
+                        : currentParent.AddNode(childNode);
 
                     foreach (var child in childNode.ChildNodesAndTokens())
                     {
@@ -74,14 +74,14 @@ static async Task PrintSolutionInfo()
                 else
                 {
                     var token = node.AsToken();
-                    var localParent = currentParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(token));
+                    var localParent = currentParent.AddNode(token);
                     foreach (var trivia in token.LeadingTrivia)
                     {
-                        localParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(trivia));
+                        localParent.AddNode(trivia, TriviaType.LeadingTrivia);
                     }
                     foreach (var trivia in token.TrailingTrivia)
                     {
-                        localParent.AddNode(ConsoleTreeHelper.MakeConsoleTreeNode(trivia));
+                        localParent.AddNode(trivia, TriviaType.TrailingTrivia);
                     }
                 }
 
