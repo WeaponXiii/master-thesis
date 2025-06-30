@@ -39,11 +39,14 @@ internal static class ConsoleTreeHelper
     {
         /* // CS9282: This member is not allowed in an extension block
         // Implicit conversion operator is not supported as extension yet
-        public static implicit operator Tree(string text) */
+        public static implicit operator Tree(SyntaxNode n) */
         public static Tree From(SyntaxNode n) => new(MakeConsoleTreeNode(n));
     }
 
-    public static IHasTreeNodes AddNode(this IHasTreeNodes node, SyntaxNode n) => node.AddNode(MakeConsoleTreeNode(n));
-    public static IHasTreeNodes AddNode(this IHasTreeNodes node, SyntaxToken t) => node.AddNode(MakeConsoleTreeNode(t));
-    public static IHasTreeNodes AddNode(this IHasTreeNodes node, SyntaxTrivia t, TriviaType triviaType) => node.AddNode(MakeConsoleTreeNode(t, triviaType));
+    extension(IHasTreeNodes node)
+    {
+        public IHasTreeNodes AddNode(SyntaxNode n) => node.AddNode(MakeConsoleTreeNode(n));
+        public IHasTreeNodes AddNode(SyntaxToken t) => node.AddNode(MakeConsoleTreeNode(t));
+        public IHasTreeNodes AddNode(SyntaxTrivia t, TriviaType triviaType) => node.AddNode(MakeConsoleTreeNode(t, triviaType));
+    }
 }
