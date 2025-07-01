@@ -56,32 +56,39 @@ static async Task PrintSolutionInfo()
             IHasTreeNodes BuildSyntaxTree2(SyntaxNodeOrToken node, IHasTreeNodes? parent = null)
             {
                 // Create the tree node with the kind of the syntax node
-                var currentParent = parent ?? Tree.From(node.AsNode()!);
+                var currentParent = (node, parent) switch
+                {
+                    (_, null) => Tree.From(node.AsNode()!),
+                    ({ IsNode: true}, IHasTreeNodes p) => p.AddNode(node.AsNode()!),
+                    ({ IsNode: false}, IHasTreeNodes p) => p.AddNode(node.AsToken()),
+                }
+
+                /*
+                dynamic foo = node.IsNode ? node.AsNode()! : node.AsToken();
+                // Extension methods can't be dynamically invoked :(
+                var baal = parent?.AddNode(foo) ?? Tree.From(node.AsNode()!);
+                */
+
+                ;
 
                 // Recursively add child nodes
                 if (node.IsNode)
                 {
-                    var childNode = node.AsNode()!;
-                    var localParent = node.IsKind(SyntaxKind.CompilationUnit)
-                        ? currentParent
-                        : currentParent.AddNode(childNode);
-
-                    foreach (var child in childNode.ChildNodesAndTokens())
+                    foreach (var child in node.ChildNodesAndTokens())
                     {
-                        BuildSyntaxTree2(child, localParent);
+                        BuildSyntaxTree2(child, currentParent);
                     }
                 }
                 else
                 {
                     var token = node.AsToken();
-                    var localParent = currentParent.AddNode(token);
                     foreach (var trivia in token.LeadingTrivia)
                     {
-                        localParent.AddNode(trivia, TriviaType.LeadingTrivia);
+                        currentParent.AddNode(trivia, TriviaType.LeadingTrivia);
                     }
                     foreach (var trivia in token.TrailingTrivia)
                     {
-                        localParent.AddNode(trivia, TriviaType.TrailingTrivia);
+                        currentParent.AddNode(trivia, TriviaType.TrailingTrivia);
                     }
                 }
 
