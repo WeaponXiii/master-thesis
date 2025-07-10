@@ -21,12 +21,9 @@ static async Task PrintSolutionInfo()
 
     foreach (var project in projects)
     {
-        /* if (project.ProjectType == SolutionProjectType.KnownToBeMSBuildFormat)
-        { */
         Console.WriteLine($"Project: {project.ProjectName}");
         Console.WriteLine($"Path: {project.AbsolutePath}");
         Console.WriteLine($"Project GUID: {project.ProjectGuid}");
-        /* } */
 
         var projectRoot = Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.LoadProject(project.AbsolutePath);
         var csItem = projectRoot.Items
@@ -62,15 +59,7 @@ static async Task PrintSolutionInfo()
                     (_, null) => Tree.From(node.AsNode()!),
                     ({ IsNode: true }, IHasTreeNodes p) => p.AddNode(node.AsNode()!),
                     ({ IsNode: false }, IHasTreeNodes p) => p.AddNode(node.AsToken()),
-                }
-
-                /*
-                dynamic foo = node.IsNode ? node.AsNode()! : node.AsToken();
-                // Extension methods can't be dynamically invoked :(
-                var baal = parent?.AddNode(foo) ?? Tree.From(node.AsNode()!);
-                */
-
-                ;
+                };
 
                 // Recursively process children
                 if (node.IsNode)
