@@ -14,9 +14,9 @@ MSBuildLocator.RegisterDefaults();
 
 await PrintSolutionInfo();
 
-static async Task PrintSolutionInfo()
+static async Task PrintSolutionInfo(string solutionPath = @"/home/rubel/dotnet/pattern/Pattern.sln")
 {
-    var solution = SolutionFile.Parse(@"/home/rubel/dotnet/pattern/Pattern.sln");
+    var solution = SolutionFile.Parse(solutionPath);
     var projects = solution.ProjectsInOrder;
 
     foreach (var project in projects)
@@ -51,39 +51,6 @@ static async Task PrintSolutionInfo()
             Debug.Assert(members.Count != descendantNodes.Count(), "Members count should not match descendant nodes count");
             Debug.Assert(!descendantNodes.Equals(members), "Descendant nodes should not match members");
 
-            IHasTreeNodes BuildSyntaxTree2(SyntaxNodeOrToken node, IHasTreeNodes? parent = null)
-            {
-                // Create the tree node with the kind of the syntax node
-                var currentParent = (node, parent) switch
-                {
-                    (_, null) => Tree.From(node.AsNode()!),
-                    ({ IsNode: true }, IHasTreeNodes p) => p.AddNode(node.AsNode()!),
-                    ({ IsNode: false }, IHasTreeNodes p) => p.AddNode(node.AsToken()),
-                };
-
-                // Recursively process children
-                if (node.IsNode)
-                {
-                    foreach (var child in node.ChildNodesAndTokens())
-                    {
-                        BuildSyntaxTree2(child, currentParent);
-                    }
-                }
-                else
-                {
-                    var token = node.AsToken();
-                    foreach (var trivia in token.LeadingTrivia)
-                    {
-                        currentParent.AddNode(trivia, TriviaType.LeadingTrivia);
-                    }
-                    foreach (var trivia in token.TrailingTrivia)
-                    {
-                        currentParent.AddNode(trivia, TriviaType.TrailingTrivia);
-                    }
-                }
-
-                return currentParent;
-            }
 
             var tree = BuildSyntaxTree2(root) as Tree;
             AnsiConsole.Write(tree!);
@@ -91,6 +58,40 @@ static async Task PrintSolutionInfo()
     }
     Console.WriteLine(getFileAtCommit("6c38e51", "./code-parser/Program.cs"));
     Console.WriteLine();
+}
+
+static IHasTreeNodes BuildSyntaxTree2(SyntaxNodeOrToken node, IHasTreeNodes? parent = null)
+{
+    // Create the tree node with the kind of the syntax node
+    var currentParent = (node, parent) switch
+    {
+        (_, null) => Tree.From(node.AsNode()!),
+        ({ IsNode: true }, IHasTreeNodes p) => p.AddNode(node.AsNode()!),
+        ({ IsNode: false }, IHasTreeNodes p) => p.AddNode(node.AsToken()),
+    };
+
+    // Recursively process children
+    if (node.IsNode)
+    {
+        foreach (var child in node.ChildNodesAndTokens())
+        {
+            BuildSyntaxTree2(child, currentParent);
+        }
+    }
+    else
+    {
+        var token = node.AsToken();
+        foreach (var trivia in token.LeadingTrivia)
+        {
+            currentParent.AddNode(trivia, TriviaType.LeadingTrivia);
+        }
+        foreach (var trivia in token.TrailingTrivia)
+        {
+            currentParent.AddNode(trivia, TriviaType.TrailingTrivia);
+        }
+    }
+
+    return currentParent;
 }
 
 static string getFileAtCommit(string commitHash = "6c38e51", string filePath = "./code-parser/Program.cs")
