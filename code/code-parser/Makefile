@@ -6,5 +6,5 @@ restore:
 	dotnet restore
 watch:
 	dotnet watch --project code-parser/code-parser.csproj run
-start:
+run:
 	dotnet run --project code-parser/code-parser.csproj
