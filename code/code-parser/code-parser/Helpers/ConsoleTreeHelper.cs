@@ -1,10 +1,9 @@
-
-using Spectre.Console;
-
 using CodeParser.Helpers;
 using Microsoft.CodeAnalysis;
 
-namespace spectre.console.helpers;
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+namespace Spectre.Console.Helpers;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 internal enum TriviaType
 {
@@ -13,7 +12,7 @@ internal enum TriviaType
     TrailingTrivia,
 }
 
-internal static class ConsoleTreeHelper
+internal static class AnsiConsoleHelper
 {
     static readonly Func<object, string> GetSpanEscaped = o => Markup.Escape(SyntaxHelper.GetSpan(o).ToString());
 
@@ -48,5 +47,10 @@ internal static class ConsoleTreeHelper
         public IHasTreeNodes AddNode(SyntaxNode n) => node.AddNode(MakeConsoleTreeNode(n));
         public IHasTreeNodes AddNode(SyntaxToken t) => node.AddNode(MakeConsoleTreeNode(t));
         public IHasTreeNodes AddNode(SyntaxTrivia t, TriviaType triviaType) => node.AddNode(MakeConsoleTreeNode(t, triviaType));
+    }
+
+    extension(SyntaxNode n)
+    {
+        public string ToConsoleString() => MakeConsoleTreeNode(n);
     }
 }
