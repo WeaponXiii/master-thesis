@@ -7,14 +7,68 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Spectre.Console;
 
-using spectre.console.helpers;
-using System.Text;
+using Spectre.Console.Helpers;
 
 MSBuildLocator.RegisterDefaults();
 
-await PrintSolutionInfo();
+//await PrintSolutionInfo();
 
-static async Task PrintSolutionInfo(string solutionPath = @"/home/rubel/dotnet/pattern/Pattern.sln")
+CompareFileVersions();
+
+static void CompareFileVersions(
+    string oldCommit = "6c38e51",
+    string newCommit = "3a35984",
+    string filePath = "code/code-parser/code-parser/Program.cs"
+)
+{
+    var oldCode = GetFileAtCommit(oldCommit, filePath);
+    var newCode = GetFileAtCommit(newCommit, filePath);
+
+    var oldSyntaxTree = CSharpSyntaxTree.ParseText(oldCode);
+    var newSyntaxTree = CSharpSyntaxTree.ParseText(newCode);
+
+    // Compare the old and new syntax trees and print the differences
+    var oldRoot = oldSyntaxTree.GetRoot();
+    var newRoot = newSyntaxTree.GetRoot();
+
+    var changes = newRoot.SyntaxTree.GetChanges(oldSyntaxTree);
+
+    if (changes.Count == 0)
+    {
+        AnsiConsole.MarkupLine("[green]No differences found between the syntax trees.[/]");
+    }
+    else
+    {
+        AnsiConsole.MarkupLine($"[yellow]{changes.Count} difference(s) found between the syntax trees:[/]");
+        foreach (var change in changes)
+        {
+            var oldNode = oldRoot.FindNode(change.Span, getInnermostNodeForTie: true);
+            var newNode = newRoot.FindNode(new Microsoft.CodeAnalysis.Text.TextSpan(change.Span.Start, change.NewText?.Length ?? 0), getInnermostNodeForTie: true);
+            AnsiConsole.MarkupLine($"[teal]Old Node:[/] {oldNode.ToConsoleString()}");
+            AnsiConsole.MarkupLine($"[lime]New Node:[/] {newNode.ToConsoleString()}");
+
+            // TextChange does not have a Kind property, so we infer the type of change
+            string changeType = change switch
+            {
+                { Span.Length: 0, NewText.Length: > 0 } => "Add into",
+                { Span.Length: > 0, NewText.Length: 0 } => "Remove from",
+                _ => "Changed"
+            };
+
+            var line = Markup.Escape(oldSyntaxTree.GetMappedLineSpan(change.Span).ToString());
+            AnsiConsole.MarkupLine($"[red]{changeType} old file@{line}[/] {Markup.Escape(change.ToString())}");
+            AnsiConsole.WriteLine(new string('-', 40));
+        }
+    }
+
+    Console.WriteLine(oldCode[10892..12078]);
+    Console.WriteLine(new string('-', 40));
+    Console.WriteLine(newCode[10892..12078]);
+}
+
+static async Task PrintSolutionInfo(
+    string solutionPath = @"/home/rubel/dotnet/pattern/Pattern.sln"
+)
 {
     var solution = SolutionFile.Parse(solutionPath);
     var projects = solution.ProjectsInOrder;
@@ -56,7 +110,9 @@ static async Task PrintSolutionInfo(string solutionPath = @"/home/rubel/dotnet/p
             AnsiConsole.Write(tree!);
         }
     }
-    Console.WriteLine(getFileAtCommit("6c38e51", "./code-parser/Program.cs"));
+    Console.WriteLine(GetFileAtCommit(
+        "6c38e51", "code/code-parser/code-parser/Program.cs"
+    ));
     Console.WriteLine();
 }
 
@@ -94,7 +150,10 @@ static IHasTreeNodes BuildSyntaxTree2(SyntaxNodeOrToken node, IHasTreeNodes? par
     return currentParent;
 }
 
-static string getFileAtCommit(string commitHash = "6c38e51", string filePath = "./code-parser/Program.cs")
+static string GetFileAtCommit(
+    string commitHash = "6c38e51",
+    string filePath = "code/code-parser/code-parser/Program.cs"
+)
 {
     //const int timeout = 10000; // 10 seconds
 
