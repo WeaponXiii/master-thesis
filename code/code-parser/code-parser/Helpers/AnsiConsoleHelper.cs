@@ -2,7 +2,7 @@ using CodeParser.Helpers;
 using Microsoft.CodeAnalysis;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
-namespace Spectre.Console.Helpers;
+namespace Spectre.Console.CodeParser.Helpers;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 
 internal enum TriviaType

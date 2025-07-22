@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Spectre.Console;
 
 using CodeParser.Helpers;
-using Spectre.Console.Helpers;
+using Spectre.Console.CodeParser.Helpers;
 
 MSBuildLocator.RegisterDefaults();
 
