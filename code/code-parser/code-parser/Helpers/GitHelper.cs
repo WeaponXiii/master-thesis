@@ -12,6 +12,6 @@ public static class GitHelper
 
         var cmd = $"git show {commitHash}:{filePath} | cat";
 
-        return BashHelper.RunBashCommand(cmd);
+        return BashHelper.RunInBash(cmd);
     }
 }

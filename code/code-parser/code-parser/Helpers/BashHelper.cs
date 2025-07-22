@@ -5,7 +5,7 @@ namespace CodeParser.Helpers;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 public static class BashHelper
 {
-    public static string RunBashCommand(string command)
+    public static string RunInBash(string command)
     {
         var escapedArgs = command.Replace("\"", "\\\"");
         var startInfo = new ProcessStartInfo
