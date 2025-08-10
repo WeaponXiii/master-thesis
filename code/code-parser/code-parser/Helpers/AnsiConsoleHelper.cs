@@ -1,5 +1,5 @@
-using CodeParser.Helpers;
 using Microsoft.CodeAnalysis;
+using static CodeParser.Helpers.SyntaxHelper;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Spectre.Console.CodeParser.Helpers;
@@ -14,9 +14,9 @@ internal enum TriviaType
 
 internal static class AnsiConsoleHelper
 {
-    static readonly Func<object, string> GetSpanEscaped = o => Markup.Escape(SyntaxHelper.GetSpan(o).ToString());
+    static readonly Func<object, string> GetSpanEscaped = o => Markup.Escape(GetSpan(o).ToString());
 
-    static readonly Func<object, string> GetTextEscaped = o => Markup.Escape(SyntaxHelper.GetText(o).Replace("\n", "\\n").Replace("\r", "\\r"));
+    static readonly Func<object, string> GetTextEscaped = o => Markup.Escape(GetText(o).Replace("\n", "\\n").Replace("\r", "\\r"));
 
     internal static string MakeConsoleTreeNode(object o, TriviaType triviaType = TriviaType.None)
     {
@@ -26,11 +26,11 @@ internal static class AnsiConsoleHelper
             TriviaType.TrailingTrivia => "Trail: ",
             _ => string.Empty,
         };
-        var kind = SyntaxHelper.GetKind(o);
+        var kind = GetKind(o);
         var span = GetSpanEscaped(o);
-        var line = SyntaxHelper.GetLine(o);
+        var line = GetLine(o);
         var text = GetTextEscaped(o);
-        var color = SyntaxHelper.GetNodeColor(o);
+        var color = GetNodeColor(o);
         return $"[{color}]{prefix}{kind}[/] Span: {span} line: {line} Text: [grey]'{text}'[/]";
     }
 
