@@ -93,7 +93,7 @@ static async Task PrintSolutionInfo(
             Console.WriteLine($"  C# File: {csFile}");
             Console.WriteLine(new string('-', 50));
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(await File.ReadAllTextAsync(csFile));
+            var syntaxTree = CSharpSyntaxTree.ParseText(await File.ReadAllTextAsync(csFile))!;
             var root = syntaxTree.GetRoot();
             var compilationRoot = syntaxTree.GetCompilationUnitRoot();
             Debug.Assert(root.Equals(compilationRoot), "Root nodes should be equal");
@@ -107,7 +107,7 @@ static async Task PrintSolutionInfo(
             Debug.Assert(!descendantNodes.Equals(members), "Descendant nodes should not match members");
 
 
-            var tree = BuildSyntaxTree2(root) as Tree;
+            var tree = ((SyntaxNodeOrToken)root).BuildSyntaxTree() as Tree;
             AnsiConsole.Write(tree!);
         }
     }
@@ -115,38 +115,4 @@ static async Task PrintSolutionInfo(
         "6c38e51", "code/code-parser/code-parser/Program.cs"
     ));
     Console.WriteLine();
-}
-
-static IHasTreeNodes BuildSyntaxTree2(SyntaxNodeOrToken node, IHasTreeNodes? parent = null)
-{
-    // Create the tree node with the kind of the syntax node
-    var currentParent = (node, parent) switch
-    {
-        (_, null) => Tree.From(node.AsNode()!),
-        ({ IsNode: true }, IHasTreeNodes p) => p.AddNode(node.AsNode()!),
-        ({ IsNode: false }, IHasTreeNodes p) => p.AddNode(node.AsToken()),
-    };
-
-    // Recursively process children
-    if (node.IsNode)
-    {
-        foreach (var child in node.ChildNodesAndTokens())
-        {
-            BuildSyntaxTree2(child, currentParent);
-        }
-    }
-    else
-    {
-        var token = node.AsToken();
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            currentParent.AddNode(trivia, TriviaType.LeadingTrivia);
-        }
-        foreach (var trivia in token.TrailingTrivia)
-        {
-            currentParent.AddNode(trivia, TriviaType.TrailingTrivia);
-        }
-    }
-
-    return currentParent;
 }

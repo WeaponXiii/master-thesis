@@ -53,4 +53,41 @@ internal static class AnsiConsoleHelper
     {
         public string ToConsoleString() => MakeConsoleTreeNode(n);
     }
+
+    extension(SyntaxNodeOrToken node)
+    {
+        public IHasTreeNodes BuildSyntaxTree(IHasTreeNodes? parent = null)
+        {
+            // Create the tree node with the kind of the syntax node
+            var currentParent = (node, parent) switch
+            {
+                (_, null) => Tree.From(node.AsNode()!),
+                ({ IsNode: true }, IHasTreeNodes p) => p.AddNode(node.AsNode()!),
+                ({ IsNode: false }, IHasTreeNodes p) => p.AddNode(node.AsToken()),
+            };
+
+            // Recursively process children
+            if (node.IsNode)
+            {
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    child.BuildSyntaxTree(currentParent);
+                }
+            }
+            else
+            {
+                var token = node.AsToken();
+                foreach (var trivia in token.LeadingTrivia)
+                {
+                    currentParent.AddNode(trivia, TriviaType.LeadingTrivia);
+                }
+                foreach (var trivia in token.TrailingTrivia)
+                {
+                    currentParent.AddNode(trivia, TriviaType.TrailingTrivia);
+                }
+            }
+
+            return currentParent;
+        }
+    }
 }
