@@ -22,6 +22,9 @@ static void CompareFileVersions(
     string filePath = "code/code-parser/code-parser/Program.cs"
 )
 {
+    var preProcessStyling = AnsiConsoleHelper.PreProcessStyling;
+    AnsiConsoleHelper.Mode = OutputMode.File;
+
     var oldCode = GitHelper.GetFileAtCommit(oldCommit, filePath);
     var newCode = GitHelper.GetFileAtCommit(newCommit, filePath);
 
@@ -36,17 +39,17 @@ static void CompareFileVersions(
 
     if (changes.Count == 0)
     {
-        AnsiConsole.MarkupLine("[green]No differences found between the syntax trees.[/]");
+        AnsiConsole.MarkupLine(preProcessStyling("[green]No differences found between the syntax trees.[/]"));
     }
     else
     {
-        AnsiConsole.MarkupLine($"[yellow]{changes.Count} difference(s) found between the syntax trees:[/]");
+        AnsiConsole.MarkupLine(preProcessStyling($"[yellow]{changes.Count} difference(s) found between the syntax trees:[/]"));
         foreach (var change in changes)
         {
             var oldNode = oldRoot.FindNode(change.Span, getInnermostNodeForTie: true);
             var newNode = newRoot.FindNode(new Microsoft.CodeAnalysis.Text.TextSpan(change.Span.Start, change.NewText?.Length ?? 0), getInnermostNodeForTie: true);
-            AnsiConsole.MarkupLine($"[teal]Old Node:[/] {oldNode.ToConsoleString()}");
-            AnsiConsole.MarkupLine($"[lime]New Node:[/] {newNode.ToConsoleString()}");
+            AnsiConsole.MarkupLine(preProcessStyling($"[teal]Old Node:[/] {oldNode.ToConsoleString()}"));
+            AnsiConsole.MarkupLine(preProcessStyling($"[lime]New Node:[/] {newNode.ToConsoleString()}"));
 
             // TextChange does not have a Kind property, so we infer the type of change
             string changeType = change switch
@@ -57,7 +60,7 @@ static void CompareFileVersions(
             };
 
             var line = Markup.Escape(oldSyntaxTree.GetMappedLineSpan(change.Span).ToString());
-            AnsiConsole.MarkupLine($"[red]{changeType} old file@{line}[/] {Markup.Escape(change.ToString())}");
+            AnsiConsole.MarkupLine(preProcessStyling($"[red]{changeType} old file@{line}[/] {Markup.Escape(change.ToString())}"));
             AnsiConsole.WriteLine(new string('-', 40));
         }
     }
@@ -71,6 +74,8 @@ static async Task PrintSolutionInfo(
     string solutionPath = @"/home/rubel/dotnet/pattern/Pattern.sln"
 )
 {
+    AnsiConsoleHelper.Mode = OutputMode.File;
+
     var solution = SolutionFile.Parse(solutionPath);
     var projects = solution.ProjectsInOrder;
 

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using static CodeParser.Helpers.SyntaxHelper;
 
@@ -12,8 +13,15 @@ internal enum TriviaType
     TrailingTrivia,
 }
 
-internal static class AnsiConsoleHelper
+internal enum OutputMode
 {
+    Console,
+    File
+}
+
+internal static partial class AnsiConsoleHelper
+{
+    public static OutputMode Mode { get; set; } = OutputMode.Console;
     static readonly Func<object, string> GetSpanEscaped = o => Markup.Escape(GetSpan(o).ToString());
 
     static readonly Func<object, string> GetTextEscaped = o => Markup.Escape(GetText(o).Replace("\n", "\\n").Replace("\r", "\\r"));
@@ -31,7 +39,9 @@ internal static class AnsiConsoleHelper
         var line = GetLine(o);
         var text = GetTextEscaped(o);
         var color = GetNodeColor(o);
-        return $"[{color}]{prefix}{kind}[/] Span: {span} line: {line} Text: [grey]'{text}'[/]";
+        var result = $"[{color}]{prefix}{kind}[/] Span: {span} line: {line} Text: [grey]'{text}'[/]";
+
+        return PreProcessStyling(result);
     }
 
     extension(Tree)
@@ -90,4 +100,9 @@ internal static class AnsiConsoleHelper
             return currentParent;
         }
     }
+
+    [GeneratedRegex(@"(?<!\[)\[[^\[\]]+\](?!\])")]
+    private static partial Regex MyRegex();
+
+    public static string PreProcessStyling(string text) => Mode == OutputMode.Console ? text : MyRegex().Replace(text, string.Empty);
 }
