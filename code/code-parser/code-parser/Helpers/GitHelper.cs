@@ -2,6 +2,8 @@
 namespace CodeParser.Helpers;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 
+using InteropServices = System.Runtime.InteropServices;
+
 public static class GitHelper
 {
     public static string GetFileAtCommit(
@@ -9,9 +11,12 @@ public static class GitHelper
     string filePath = "code/code-parser/code-parser/Program.cs")
     {
         Console.WriteLine($"Getting file '{filePath}' at commit '{commitHash}'");
+        var cmdPostfix = InteropServices.RuntimeInformation.IsOSPlatform(InteropServices.OSPlatform.Linux)
+            ? " | cat"
+            : "";
 
-        var cmd = $"git show {commitHash}:{filePath} | cat";
+        var cmd = $"git show {commitHash}:{filePath}{cmdPostfix}";        
 
-        return BashHelper.RunInBash(cmd);
+        return ShellRunner.Execute(cmd);
     }
 }

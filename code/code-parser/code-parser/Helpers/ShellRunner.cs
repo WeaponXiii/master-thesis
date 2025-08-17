@@ -3,14 +3,20 @@ using System.Diagnostics;
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace CodeParser.Helpers;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
-public static class BashHelper
+
+using InteropServices = System.Runtime.InteropServices;
+
+public static class ShellRunner
 {
-    public static string RunInBash(string command)
+    public static string Execute(string command)
     {
+        
         var escapedArgs = command.Replace("\"", "\\\"");
         var startInfo = new ProcessStartInfo
         {
-            FileName = "/bin/bash",
+            FileName = InteropServices.RuntimeInformation.IsOSPlatform(InteropServices.OSPlatform.Windows) 
+                ? "powershell"
+                : "/bin/bash",
             Arguments = $"-c \"{escapedArgs}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
