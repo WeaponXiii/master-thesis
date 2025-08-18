@@ -97,13 +97,13 @@ static async Task PrintSolutionInfo(
             Console.WriteLine(new string('-', 50));
             Console.WriteLine($"  C# File: {csFile}");
             Console.WriteLine(new string('-', 50));
-
-            var syntaxTree = CSharpSyntaxTree.ParseText(await File.ReadAllTextAsync(csFile))!;
-            var root = syntaxTree.GetRoot();
+            
+            var syntaxTree = CSharpSyntaxTree.ParseText(await File.ReadAllTextAsync(csFile).ConfigureAwait(false))!;
+            var root = await syntaxTree.GetRootAsync().ConfigureAwait(false);
             var compilationRoot = syntaxTree.GetCompilationUnitRoot();
             Debug.Assert(root.Equals(compilationRoot), "Root nodes should be equal");
 
-            Console.WriteLine($"{await syntaxTree.GetTextAsync()}");
+            Console.WriteLine($"{await syntaxTree.GetTextAsync().ConfigureAwait(false)}");
             Console.WriteLine(new string('*', 50));
 
             var descendantNodes = root.DescendantNodes();
