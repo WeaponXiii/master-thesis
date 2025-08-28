@@ -24,7 +24,7 @@ internal static partial class AnsiConsoleHelper
     public static OutputMode Mode { get; set; } = OutputMode.Console;
     static readonly Func<object, string> GetSpanEscaped = o => Markup.Escape(GetSpan(o).ToString());
 
-    static readonly Func<object, string> GetTextEscaped = o => Markup.Escape(GetText(o).Replace("\n", "\\n").Replace("\r", "\\r"));
+    static readonly Func<object, string> GetTextEscaped = o => Markup.Escape(GetText(o));
 
     internal static string MakeConsoleTreeNode(object o, TriviaType triviaType = TriviaType.None)
     {
@@ -39,7 +39,7 @@ internal static partial class AnsiConsoleHelper
         var line = GetLine(o);
         var text = GetTextEscaped(o);
         var color = GetNodeColor(o);
-        var result = $"[{color}]{prefix}{kind}[/] Span: {span} line: {line} Text: [grey]'{text}'[/]";
+        var result = $"[{color}]{prefix}{kind}[/] Span: {span} line: {line} Text:\n[grey]'{text}'[/]";
 
         return PreProcessStyling(result);
     }
